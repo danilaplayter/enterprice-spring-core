@@ -1,0 +1,140 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+group = 'ru.mentee.library'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '21'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    versions = [
+            postgresql       : '42.6.0',
+            lombok           : '1.18.30',
+            slf4j            : '2.0.9',
+            logback          : '1.4.14',
+            junit            : '5.10.0',
+            assertj          : '3.24.2',
+            mockito          : '5.7.0',
+            testcontainers   : '1.19.7',
+            h2               : '2.2.224',
+            googleJavaFormat : '1.17.0',
+            jackson          : '2.17.0',
+            jaxbApi          : '4.0.0',
+            jaxbRuntime      : '4.0.2'
+    ]
+}
+
+dependencies {
+    // Spring Boot starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.liquibase:liquibase-core'
+
+    // Database
+    runtimeOnly "org.postgresql:postgresql:${versions.postgresql}"
+    testImplementation "com.h2database:h2:${versions.h2}"
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+
+    // Logging
+    implementation "org.slf4j:slf4j-api:${versions.slf4j}"
+    implementation "ch.qos.logback:logback-classic:${versions.logback}"
+    implementation "ch.qos.logback:logback-core:${versions.logback}"
+
+    // Jackson
+    implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+    implementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
+
+    // JAXB
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:${versions.jaxbApi}"
+    implementation "org.glassfish.jaxb:jaxb-runtime:${versions.jaxbRuntime}"
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation platform("org.junit:junit-bom:${versions.junit}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation "org.mockito:mockito-core:${versions.mockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${versions.mockito}"
+    testImplementation "org.assertj:assertj-core:${versions.assertj}"
+    testImplementation "org.testcontainers:testcontainers:${versions.testcontainers}"
+    testImplementation "org.testcontainers:junit-jupiter:${versions.testcontainers}"
+    testImplementation "org.testcontainers:postgresql:${versions.testcontainers}"
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+}
+
+checkstyle {
+    toolVersion = '10.12.5'
+    configFile = file("${rootDir}/config/checkstyle/google_checks.xml")
+    maxErrors = 0
+    maxWarnings = -1
+    ignoreFailures = true
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestReport
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat("${versions.googleJavaFormat}").aosp().reflowLongStrings().skipJavadocFormatting()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+        licenseHeader '/* @MENTEE_POWER (C)$YEAR */'
+    }
+
+    sql {
+        target 'src/**/*.sql'
+        dbeaver()
+    }
+
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore', '.gitattributes'
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
+}
