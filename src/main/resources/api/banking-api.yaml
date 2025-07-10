@@ -1,0 +1,154 @@
+openapi: 3.0.3
+info:
+  title: Banking Operations API
+  version: 1.0.0
+paths:
+  /api/accounts/{accountId}/balance:
+    get:
+      summary: Получить баланс счета
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Баланс счета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+
+  /api/transfers:
+    post:
+      summary: Выполнить перевод между счетами
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '201':
+          description: Перевод выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResult'
+
+  /api/payments:
+    post:
+      summary: Выполнить платеж
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Платеж выполнен
+
+  /api/audit/operations:
+    get:
+      summary: Получить журнал операций
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Список операций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEntry'
+
+components:
+  schemas:
+    Balance:
+      type: object
+      properties:
+        accountId:
+          type: string
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+
+    TransferRequest:
+      type: object
+      required:
+        - fromAccount
+        - toAccount
+        - amount
+      properties:
+        fromAccount:
+          type: string
+        toAccount:
+          type: string
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+        description:
+          type: string
+
+    TransferResult:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [SUCCESS, PENDING, FAILED]
+        timestamp:
+          type: string
+          format: date-time
+
+    PaymentRequest:
+      type: object
+      required:
+        - accountId
+        - paymentDetails
+        - amount
+      properties:
+        accountId:
+          type: string
+        paymentDetails:
+          type: string
+        amount:
+          type: number
+          format: decimal
+
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        operation:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+        details:
+          type: object

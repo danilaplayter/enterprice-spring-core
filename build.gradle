@@ -41,6 +41,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security' // <-- Добавлено
     implementation 'org.liquibase:liquibase-core'
 
     // Database
@@ -70,6 +71,7 @@ dependencies {
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test' // <-- Для тестов с Security
     testImplementation platform("org.junit:junit-bom:${versions.junit}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "org.mockito:mockito-core:${versions.mockito}"
@@ -79,7 +81,17 @@ dependencies {
     testImplementation "org.testcontainers:junit-jupiter:${versions.testcontainers}"
     testImplementation "org.testcontainers:postgresql:${versions.testcontainers}"
 
+    // OpenAPI (Swagger)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // Spring Cache Abstraction
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // Caffeine cache implementation
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
+    // Spring AOP (для работы аспектов)
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
 }
 
@@ -137,4 +149,8 @@ spotless {
         indentWithSpaces(4)
         endWithNewline()
     }
+}
+
+bootJar {
+    mainClass = 'ru.mentee.banking.BankingApplication'
 }
