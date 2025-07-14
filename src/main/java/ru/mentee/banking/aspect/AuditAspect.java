@@ -17,8 +17,14 @@ import ru.mentee.banking.service.AuditService;
 @Aspect
 @Component
 public class AuditAspect {
+    private final AuditService auditService;
+    private final AuditEntryFactory auditEntryFactory;
 
-    @Autowired private AuditService auditService;
+    @Autowired
+    public AuditAspect(AuditService auditService, AuditEntryFactory auditEntryFactory) {
+        this.auditService = auditService;
+        this.auditEntryFactory = auditEntryFactory;
+    }
 
     @Around("@annotation(auditable)")
     public Object audit(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {

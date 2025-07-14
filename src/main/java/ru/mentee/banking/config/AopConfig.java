@@ -6,9 +6,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.annotation.Order;
 import ru.mentee.banking.aspect.AuditAspect;
+import ru.mentee.banking.aspect.AuditEntryFactory;
 import ru.mentee.banking.aspect.CachingAspect;
 import ru.mentee.banking.aspect.RetryAspect;
 import ru.mentee.banking.aspect.SecurityAspect;
+import ru.mentee.banking.service.AuditService;
 
 @Configuration
 @EnableAspectJAutoProxy
@@ -34,7 +36,7 @@ public class AopConfig {
 
     @Bean
     @Order(4)
-    public AuditAspect auditAspect() {
-        return new AuditAspect();
+    public AuditAspect auditAspect(AuditService auditService, AuditEntryFactory auditEntryFactory) {
+        return new AuditAspect(auditService, auditEntryFactory);
     }
 }
