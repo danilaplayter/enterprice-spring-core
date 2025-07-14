@@ -3,6 +3,7 @@ package ru.mentee.banking.aspect;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,8 +26,21 @@ public class SecurityAspect {
             throws Throwable {
         try {
             logger.debug("Начало проверки ролей для метода: {}");
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
+
+            Authentication authentication =
+                    Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                            .orElseThrow(
+                                    () -> {
+                                        logger.warn(
+                                                "Попытка доступа неаутентифицированного"
+                                                        + " пользователя к защищенному методу: {}",
+                                                joinPoint.getSignature().getName());
+                                        return new SecurityException(
+                                                "Доступ запрещен. Пользователь не"
+                                                        + " аутентифицирован.");
+                                    });
+
+            if (!authentication.isAuthenticated()) {
                 logger.warn(
                         "Попытка доступа неаутентифицированного пользователя к защищенному методу:"
                                 + " {}",
@@ -54,7 +68,9 @@ public class SecurityAspect {
                         userRoles,
                         joinPoint.getSignature().getName(),
                         Arrays.toString(requiredRoles));
+                throw new SecurityException("Доступ запрещен. Недостаточно прав.");
             }
+
             logger.debug("Доступ разрешен для пользователя {}", authentication.getName());
             return joinPoint.proceed();
 
